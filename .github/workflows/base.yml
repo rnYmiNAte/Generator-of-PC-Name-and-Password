@@ -1,0 +1,32 @@
+name: Generate-PC-Name-And-Password
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: windows-latest
+
+    steps:
+      - name: Generate PC name and password
+        shell: pwsh
+        run: |
+          # Generate PC name (random string + timestamp)
+          $pcName = "PC-" + (Get-Date -Format "yyyyMMdd-HHmmss") + "-" + (Get-Random -Maximum 9999)
+
+          # Generate password (12 chars, 3 non-alphanumeric)
+          Add-Type -AssemblyName System.Web
+          $password = [System.Web.Security.Membership]::GeneratePassword(12,3)
+
+          # Output results
+          Write-Output "PC Name: $pcName"
+          Write-Output "Password: $password"
+
+          # Save as environment variables
+          echo "PC_NAME=$pcName" >> $env:GITHUB_ENV
+          echo "PASSWORD=$password" >> $env:GITHUB_ENV
+
+      - name: Show Generated Values
+        run: |
+          echo "Generated PC Name: $env:PC_NAME"
+          echo "Generated Password: $env:PASSWORD"
