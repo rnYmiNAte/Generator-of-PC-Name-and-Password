@@ -8,7 +8,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Generate PC Name, Username & Password
+      - name: Generate PC Info & Credentials
         shell: pwsh
         run: |
           # Generate PC Name
