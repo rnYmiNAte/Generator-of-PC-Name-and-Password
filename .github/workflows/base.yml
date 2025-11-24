@@ -1,4 +1,4 @@
-name: Generate PC Info & Credentials
+name: Generate PC Info & Credentials YAML
 
 on:
   workflow_dispatch:
@@ -8,6 +8,9 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
       - name: Generate PC Name, Username & Password
         shell: pwsh
         run: |
@@ -22,13 +25,19 @@ jobs:
           $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()'
           $Password = -join ((1..12) | ForEach-Object { $chars[Get-Random -Maximum $chars.Length] })
 
-          # Output to GitHub Actions environment
-          echo "PC_NAME=$PCName" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "USERNAME=$Username" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "PASSWORD=$Password" | Out-File -FilePath $env:GITHUB_ENV -Append
+          # Prepare YAML content
+          $yamlContent = @"
+pc_name: $PCName
+username: $Username
+password: $Password
+"@
+
+          # Save YAML file to repo
+          $yamlPath = "$PWD/generated_credentials.yml"
+          $yamlContent | Out-File -FilePath $yamlPath -Encoding utf8
+
+          echo "Generated YAML file at $yamlPath"
 
       - name: Show Generated Values
         run: |
-          echo "PC Name     : $env:PC_NAME"
-          echo "Username    : $env:USERNAME"
-          echo "Password    : $env:PASSWORD"
+          Get-Content "$PWD/generated_credentials.yml"
