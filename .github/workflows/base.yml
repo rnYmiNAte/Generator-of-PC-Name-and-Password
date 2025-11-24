@@ -1,4 +1,4 @@
-name: Generate-PC-Name-And-Password
+name: Generate PC Info & Credentials
 
 on:
   workflow_dispatch:
@@ -8,25 +8,27 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Generate PC name and password
+      - name: Generate PC Name, Username & Password
         shell: pwsh
         run: |
-          # Generate PC name (Date + Random number)
-          $pcName = "PC-" + (Get-Date -Format "yyyyMMdd-HHmmss") + "-" + (Get-Random -Maximum 9999)
+          # Generate PC Name
+          $RandomID = Get-Random -Minimum 1000 -Maximum 9999
+          $PCName = "WIN-PC-$RandomID"
 
-          # Manual password generator (12 chars, includes symbols)
-          $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
-          $password = -join ((1..12) | ForEach-Object { $chars[(Get-Random -Maximum $chars.Length)] })
+          # Generate Username
+          $Username = "user_$RandomID"
 
-          # Output results
-          Write-Output "PC Name: $pcName"
-          Write-Output "Password: $password"
+          # Generate Secure Password (12 characters, letters + numbers + symbols)
+          $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()'
+          $Password = -join ((1..12) | ForEach-Object { $chars[Get-Random -Maximum $chars.Length] })
 
-          # Save as environment variables
-          echo "PC_NAME=$pcName" >> $env:GITHUB_ENV
-          echo "PASSWORD=$password" >> $env:GITHUB_ENV
+          # Output to GitHub Actions environment
+          echo "PC_NAME=$PCName" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "USERNAME=$Username" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "PASSWORD=$Password" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Show Generated Values
         run: |
-          echo "Generated PC Name: $env:PC_NAME"
-          echo "Generated Password: $env:PASSWORD"
+          echo "PC Name     : $env:PC_NAME"
+          echo "Username    : $env:USERNAME"
+          echo "Password    : $env:PASSWORD"
