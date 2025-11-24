@@ -9,24 +9,12 @@ jobs:
 
     steps:
       - name: Generate PC name and password
-        shell: pwsh
         run: |
-          # Generate PC name (random string + timestamp)
-          $pcName = "PC-" + (Get-Date -Format "yyyyMMdd-HHmmss") + "-" + (Get-Random -Maximum 9999)
+  $pcName = "PC-" + (Get-Date -Format "yyyyMMdd-HHmmss") + "-" + (Get-Random -Maximum 9999)
 
-          # Generate password (12 chars, 3 non-alphanumeric)
-          Add-Type -AssemblyName System.Web
-          $password = [System.Web.Security.Membership]::GeneratePassword(12,3)
+  # Alternative password generator
+  $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
+  $password = -join ((1..12) | ForEach-Object { $chars[(Get-Random -Maximum $chars.Length)] })
 
-          # Output results
-          Write-Output "PC Name: $pcName"
-          Write-Output "Password: $password"
-
-          # Save as environment variables
-          echo "PC_NAME=$pcName" >> $env:GITHUB_ENV
-          echo "PASSWORD=$password" >> $env:GITHUB_ENV
-
-      - name: Show Generated Values
-        run: |
-          echo "Generated PC Name: $env:PC_NAME"
-          echo "Generated Password: $env:PASSWORD"
+  echo "PC_NAME=$pcName" >> $env:GITHUB_ENV
+  echo "PASSWORD=$password" >> $env:GITHUB_ENV
