@@ -8,35 +8,31 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Generate PC Name, Username, and Password
+      - name: Generate Credentials
         shell: pwsh
         run: |
-          # Generate PC Name (random letters + numbers)
-          $pcName = "PC-" + -join ((65..90) | Get-Random -Count 4 | ForEach-Object {[char]$_}) + (Get-Random -Minimum 100 -Maximum 999)
+          # Generate PC Name: PC-XXXX123 (4 random letters + 3 random digits)
+          $pcName = "PC-" + (-join ((65..90) | Get-Random -Count 4 | ForEach-Object {[char]$_})) + (Get-Random -Minimum 100 -Maximum 999)
           
-          # Generate Username (first 4 letters + random 3 digits)
+          # Generate Username: userXYZ (random 3 digits)
           $username = "user" + (Get-Random -Minimum 100 -Maximum 999)
           
-          # Generate Password (12 chars)
+          # Generate Password: 12 random characters
           $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
           $password = -join ((1..12) | ForEach-Object { $chars[(Get-Random -Maximum $chars.Length)] })
           
+          # Output to console
           Write-Output "PC Name: $pcName"
           Write-Output "Username: $username"
           Write-Output "Password: $password"
-
-      - name: Save credentials as artifact
-        shell: pwsh
-        run: |
-          @"
-PCName: $env:PC_NAME
-Username: $env:USERNAME
-Password: $env:PASSWORD
-"@ | Out-File -FilePath credentials.txt
-        env:
-          PC_NAME: ${{ steps.generate_credentials.outputs.pcName }}
-          USERNAME: ${{ steps.generate_credentials.outputs.username }}
-          PASSWORD: ${{ steps.generate_credentials.outputs.password }}
+          
+          # Save to file
+          $content = @"
+PC Name: $pcName
+Username: $username
+Password: $password
+"@
+          $content | Out-File -FilePath credentials.txt
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
