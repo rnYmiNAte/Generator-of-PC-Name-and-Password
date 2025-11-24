@@ -8,7 +8,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Generate PC Info & Credentials
+      - name: Generate PC Name, Username & Password
         shell: pwsh
         run: |
           # Generate PC Name
@@ -18,7 +18,7 @@ jobs:
           # Generate Username
           $Username = "user_$RandomID"
 
-          # Generate Secure Password (12 characters, letters + numbers + symbols)
+          # Generate Secure Password (12 characters)
           $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()'
           $Password = -join ((1..12) | ForEach-Object { $chars[Get-Random -Maximum $chars.Length] })
 
