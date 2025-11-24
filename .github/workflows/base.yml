@@ -1,41 +1,32 @@
-name: Generate PC Name, Username, and Password
+name: Generate Tailscale Hostname
 
 on:
   workflow_dispatch:
 
 jobs:
-  generate_credentials:
-    runs-on: windows-latest
+  generate-hostname:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Generate Credentials
-        shell: pwsh
-        run: |
-          # Generate PC Name: PC-XXXX123 (4 random letters + 3 random digits)
-          $pcName = "PC-" + (-join ((65..90) | Get-Random -Count 4 | ForEach-Object {[char]$_})) + (Get-Random -Minimum 100 -Maximum 999)
-          
-          # Generate Username: userXYZ (random 3 digits)
-          $username = "user" + (Get-Random -Minimum 100 -Maximum 999)
-          
-          # Generate Password: 12 random characters
-          $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
-          $password = -join ((1..12) | ForEach-Object { $chars[(Get-Random -Maximum $chars.Length)] })
-          
-          # Output to console
-          Write-Output "PC Name: $pcName"
-          Write-Output "Username: $username"
-          Write-Output "Password: $password"
-          
-          # Save to file
-          $content = @"
-PC Name: $pcName
-Username: $username
-Password: $password
-"@
-          $content | Out-File -FilePath credentials.txt
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: credentials
-          path: credentials.txt
+      - name: Install Tailscale CLI
+        run: |
+          curl -fsSL https://tailscale.com/install.sh | sh
+
+      - name: Authenticate Tailscale
+        env:
+          TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
+        run: |
+          sudo tailscale up --authkey $TAILSCALE_AUTHKEY
+
+      - name: Generate Hostname
+        id: generate_hostname
+        run: |
+          HOSTNAME=$(tailscale status --json | jq -r '.Self.Hostname')
+          echo "hostname=$HOSTNAME" >> $GITHUB_OUTPUT
+
+      - name: Show Generated Hostname
+        run: |
+          echo "The generated Tailscale hostname is: ${{ steps.generate_hostname.outputs.hostname }}"
