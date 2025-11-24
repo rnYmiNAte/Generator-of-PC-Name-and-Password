@@ -1,34 +1,29 @@
-name: Generate PC Info & Credentials
+name: Generate Password Only
 
 on:
   workflow_dispatch:
 
 jobs:
-  generate:
+  generate_password:
     runs-on: windows-latest
 
     steps:
-      - name: Generate PC Name, Username & Password
+      - name: Generate Password Only (PowerShell)
         shell: pwsh
         run: |
-          # Generate PC Name
-          $RandomID = Get-Random -Minimum 1000 -Maximum 9999
-          $PCName = "WIN-PC-$RandomID"
+          $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
+          $password = -join ((1..12) | ForEach-Object { $chars[(Get-Random -Maximum $chars.Length)] })
+          Write-Output "Generated Password: $password"
 
-          # Generate Username
-          $Username = "user_$RandomID"
-
-          # Generate Secure Password
-          Add-Type -AssemblyName System.Web
-          $Password = [System.Web.Security.Membership]::GeneratePassword(12,3)
-
-          # Output to GitHub Actions
-          echo "PC_NAME=$PCName" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "USERNAME=$Username" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "PASSWORD=$Password" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: Show Generated Values
+      - name: Save Password as Artifact
+        shell: pwsh
         run: |
-          echo "PC Name     : $env:PC_NAME"
-          echo "Username    : $env:USERNAME"
-          echo "Password    : $env:PASSWORD"
+          echo "password=$password" > password.txt
+        env:
+          password: $password
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-password
+          path: password.txt
