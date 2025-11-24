@@ -9,12 +9,24 @@ jobs:
 
     steps:
       - name: Generate PC name and password
+        shell: pwsh
         run: |
-  $pcName = "PC-" + (Get-Date -Format "yyyyMMdd-HHmmss") + "-" + (Get-Random -Maximum 9999)
+          # Generate PC name (Date + Random number)
+          $pcName = "PC-" + (Get-Date -Format "yyyyMMdd-HHmmss") + "-" + (Get-Random -Maximum 9999)
 
-  # Alternative password generator
-  $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
-  $password = -join ((1..12) | ForEach-Object { $chars[(Get-Random -Maximum $chars.Length)] })
+          # Manual password generator (12 chars, includes symbols)
+          $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
+          $password = -join ((1..12) | ForEach-Object { $chars[(Get-Random -Maximum $chars.Length)] })
 
-  echo "PC_NAME=$pcName" >> $env:GITHUB_ENV
-  echo "PASSWORD=$password" >> $env:GITHUB_ENV
+          # Output results
+          Write-Output "PC Name: $pcName"
+          Write-Output "Password: $password"
+
+          # Save as environment variables
+          echo "PC_NAME=$pcName" >> $env:GITHUB_ENV
+          echo "PASSWORD=$password" >> $env:GITHUB_ENV
+
+      - name: Show Generated Values
+        run: |
+          echo "Generated PC Name: $env:PC_NAME"
+          echo "Generated Password: $env:PASSWORD"
